@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
-import { CATEGORIES, formatDateShort, formatMoney, toDatetimeLocal } from "../constants";
+import {
+  CATEGORIES,
+  formatDateShort,
+  formatMoney,
+  paymentLabel,
+  toDatetimeLocal,
+} from "../constants";
 
 const emptyForm = () => {
   const d = new Date();
@@ -22,6 +28,7 @@ const emptyForm = () => {
 export default function Admin() {
   const [stats, setStats] = useState(null);
   const [events, setEvents] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [form, setForm] = useState(emptyForm());
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -29,6 +36,16 @@ export default function Admin() {
   function refresh() {
     api.stats().then(setStats).catch((e) => setError(e.message));
     api.listEvents().then(setEvents).catch((e) => setError(e.message));
+    api.listOrders().then(setOrders).catch((e) => setError(e.message));
+  }
+
+  async function setPaid(code, status) {
+    try {
+      await api.setPaymentStatus(code, status);
+      refresh();
+    } catch (err) {
+      setError(err.message);
+    }
   }
 
   useEffect(() => {
@@ -209,6 +226,65 @@ export default function Admin() {
             ))}
           </div>
         </div>
+      </div>
+
+      <div className="panel">
+        <h2>Recent orders ({orders.length})</h2>
+        {orders.length === 0 ? (
+          <div className="muted">No orders yet.</div>
+        ) : (
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Event</th>
+                <th>Buyer</th>
+                <th>Qty</th>
+                <th>Total</th>
+                <th>Method</th>
+                <th>Payment</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.map((o) => (
+                <tr key={o.id}>
+                  <td className="code-value small">{o.code}</td>
+                  <td>{o.event ? o.event.title : "—"}</td>
+                  <td>
+                    {o.customer_name}
+                    <div className="muted small">{o.phone || o.customer_email}</div>
+                  </td>
+                  <td>{o.quantity}</td>
+                  <td>{formatMoney(o.total_cents)}</td>
+                  <td>{paymentLabel(o.payment_method)}</td>
+                  <td>
+                    <span className={`badge pay-${o.payment_status}`}>
+                      {o.payment_status}
+                    </span>
+                  </td>
+                  <td>
+                    {o.payment_status !== "paid" ? (
+                      <button
+                        className="btn small"
+                        onClick={() => setPaid(o.code, "paid")}
+                      >
+                        Mark paid
+                      </button>
+                    ) : (
+                      <button
+                        className="btn small"
+                        onClick={() => setPaid(o.code, "pending")}
+                      >
+                        Undo
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

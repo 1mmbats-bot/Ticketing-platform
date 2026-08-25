@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api";
-import { formatDate, formatMoney } from "../constants";
+import { formatDate, formatMoney, paymentLabel } from "../constants";
 
 export default function MyOrders() {
   const [email, setEmail] = useState("");
@@ -84,6 +84,10 @@ export default function MyOrders() {
                 <div>
                   {o.quantity} × · <strong>{formatMoney(o.total_cents)}</strong>
                 </div>
+                <div className="muted small">{paymentLabel(o.payment_method)}</div>
+                <span className={`badge pay-${o.payment_status}`}>
+                  {o.payment_status}
+                </span>
                 <span className={`badge status-${o.status}`}>{o.status}</span>
                 {o.status === "confirmed" && (
                   <button className="btn btn-danger small" onClick={() => cancel(o.code)}>

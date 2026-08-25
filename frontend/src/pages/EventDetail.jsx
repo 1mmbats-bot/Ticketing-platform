@@ -8,12 +8,7 @@ export default function EventDetail() {
   const navigate = useNavigate();
   const [event, setEvent] = useState(null);
   const [error, setError] = useState(null);
-  const [buying, setBuying] = useState(false);
-  const [form, setForm] = useState({
-    customer_name: "",
-    customer_email: "",
-    quantity: 1,
-  });
+  const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
     api.getEvent(id).then(setEvent).catch((e) => setError(e.message));
@@ -24,24 +19,11 @@ export default function EventDetail() {
 
   const soldOut = event.tickets_available === 0;
   const maxQty = Math.min(10, event.tickets_available);
-  const total = form.quantity * event.price_cents;
+  const total = quantity * event.price_cents;
 
-  async function buy(e) {
+  function goToCheckout(e) {
     e.preventDefault();
-    setBuying(true);
-    setError(null);
-    try {
-      const order = await api.createOrder({
-        event_id: event.id,
-        customer_name: form.customer_name,
-        customer_email: form.customer_email,
-        quantity: Number(form.quantity),
-      });
-      navigate(`/confirmation/${order.code}`);
-    } catch (err) {
-      setError(err.message);
-      setBuying(false);
-    }
+    navigate(`/checkout/${event.id}?qty=${quantity}`);
   }
 
   return (
@@ -86,15 +68,13 @@ export default function EventDetail() {
               <div className="tickets-left">
                 {event.tickets_available} tickets left
               </div>
-              <form onSubmit={buy} className="form">
+              <form onSubmit={goToCheckout} className="form">
                 <label className="field">
                   <span>Quantity</span>
                   <select
                     className="input"
-                    value={form.quantity}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, quantity: e.target.value }))
-                    }
+                    value={quantity}
+                    onChange={(e) => setQuantity(Number(e.target.value))}
                   >
                     {Array.from({ length: maxQty }, (_, i) => i + 1).map((n) => (
                       <option key={n} value={n}>
@@ -103,39 +83,14 @@ export default function EventDetail() {
                     ))}
                   </select>
                 </label>
-                <label className="field">
-                  <span>Full name</span>
-                  <input
-                    className="input"
-                    required
-                    value={form.customer_name}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, customer_name: e.target.value }))
-                    }
-                  />
-                </label>
-                <label className="field">
-                  <span>Email</span>
-                  <input
-                    className="input"
-                    type="email"
-                    required
-                    value={form.customer_email}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, customer_email: e.target.value }))
-                    }
-                  />
-                </label>
 
                 <div className="total-row">
                   <span>Total</span>
                   <strong>{formatMoney(total)}</strong>
                 </div>
 
-                {error && <div className="error-box">{error}</div>}
-
-                <button className="btn btn-primary btn-block" disabled={buying}>
-                  {buying ? "Processing…" : `Buy ${form.quantity} ticket(s)`}
+                <button className="btn btn-primary btn-block">
+                  Continue to checkout →
                 </button>
               </form>
             </>

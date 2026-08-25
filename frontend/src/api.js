@@ -38,4 +38,9 @@ export const api = {
   listOrders: (email) => request("/orders" + qs({ email })),
   getOrder: (code) => request(`/orders/${code}`),
   cancelOrder: (code) => request(`/orders/${code}/cancel`, { method: "POST" }),
+  setPaymentStatus: (code, payment_status) =>
+    request(`/orders/${code}`, {
+      method: "PATCH",
+      body: JSON.stringify({ payment_status }),
+    }),
 };

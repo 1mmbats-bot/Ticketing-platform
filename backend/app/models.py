@@ -37,8 +37,15 @@ class Order(Base):
     event_id = Column(Integer, ForeignKey("events.id"), nullable=False)
     customer_name = Column(String, nullable=False)
     customer_email = Column(String, nullable=False)
+    phone = Column(String, default="")
     quantity = Column(Integer, nullable=False)
     total_cents = Column(Integer, nullable=False)
+
+    # Payment
+    payment_method = Column(String, default="mpesa")  # mpesa|airtel|card|paypal|bank
+    payment_reference = Column(String, default="")  # phone / txn code / paypal email
+    payment_status = Column(String, default="pending")  # pending | paid | refunded
+
     status = Column(String, default="confirmed")  # confirmed | cancelled
     created_at = Column(DateTime, default=datetime.utcnow)
 

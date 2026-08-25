@@ -8,6 +8,8 @@ from sqlalchemy.orm import Session
 from . import models, schemas
 
 CATEGORIES = {"music", "sports", "theater", "conference", "comedy", "general"}
+PAYMENT_METHODS = {"mpesa", "airtel", "card", "paypal", "bank"}
+PAYMENT_STATUSES = {"pending", "paid", "refunded"}
 
 
 class BusinessError(Exception):
@@ -84,6 +86,8 @@ def create_order(db: Session, order: schemas.OrderCreate):
         raise BusinessError(
             f"Only {event.tickets_available} ticket(s) left for this event"
         )
+    if order.payment_method not in PAYMENT_METHODS:
+        raise BusinessError("Unsupported payment method")
 
     total = order.quantity * event.price_cents
     db_order = models.Order(
@@ -91,8 +95,12 @@ def create_order(db: Session, order: schemas.OrderCreate):
         event_id=event.id,
         customer_name=order.customer_name,
         customer_email=order.customer_email,
+        phone=order.phone,
         quantity=order.quantity,
         total_cents=total,
+        payment_method=order.payment_method,
+        payment_reference=order.payment_reference,
+        payment_status="pending",
         status="confirmed",
     )
     event.tickets_sold += order.quantity
@@ -123,6 +131,15 @@ def cancel_order(db: Session, db_order: models.Order):
         db_order.event.tickets_sold = max(
             0, db_order.event.tickets_sold - db_order.quantity
         )
+    db.commit()
+    db.refresh(db_order)
+    return db_order
+
+
+def set_payment_status(db: Session, db_order: models.Order, status: str):
+    if status not in PAYMENT_STATUSES:
+        raise BusinessError("Invalid payment status")
+    db_order.payment_status = status
     db.commit()
     db.refresh(db_order)
     return db_order

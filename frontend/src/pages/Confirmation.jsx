@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api } from "../api";
-import { formatDate, formatMoney } from "../constants";
+import { formatDate, formatMoney, paymentLabel } from "../constants";
 
 export default function Confirmation() {
   const { code } = useParams();
@@ -48,14 +48,28 @@ export default function Confirmation() {
             <span>{order.quantity}</span>
           </div>
           <div className="receipt-row">
-            <span>Status</span>
-            <span className={`badge status-${order.status}`}>{order.status}</span>
+            <span>Payment method</span>
+            <span>{paymentLabel(order.payment_method)}</span>
+          </div>
+          <div className="receipt-row">
+            <span>Payment status</span>
+            <span className={`badge pay-${order.payment_status}`}>
+              {order.payment_status}
+            </span>
           </div>
           <div className="receipt-row total">
-            <span>Total paid</span>
+            <span>Total</span>
             <strong>{formatMoney(order.total_cents)}</strong>
           </div>
         </div>
+
+        {order.payment_status === "pending" && (
+          <div className="pay-note">
+            ⏳ Your tickets are reserved. Complete payment via{" "}
+            <strong>{paymentLabel(order.payment_method)}</strong> — the organizer
+            will confirm it shortly.
+          </div>
+        )}
 
         <div className="form-actions">
           <Link to="/orders" className="btn">

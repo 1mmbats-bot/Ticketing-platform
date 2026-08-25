@@ -1,10 +1,10 @@
 from typing import List, Optional
 
-from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
-from . import crud, schemas
+from . import config, crud, notifications, schemas
 from .crud import BusinessError
 from .database import Base, engine, get_db
 from .seed import seed_if_empty
@@ -29,7 +29,17 @@ def _startup():
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok"}
+    return {"status": "ok", "telegram_configured": config.TELEGRAM_ENABLED}
+
+
+@app.post("/api/notifications/test")
+def test_telegram():
+    ok, detail = notifications.send_telegram_message(
+        "✅ TicketHub test message — your Telegram notifications are working!"
+    )
+    if not ok:
+        raise HTTPException(status_code=400, detail=detail)
+    return {"ok": True, "detail": detail}
 
 
 # ---------- Events ----------
@@ -89,11 +99,34 @@ def delete_event(event_id: int, db: Session = Depends(get_db)):
 
 # ---------- Orders ----------
 @app.post("/api/orders", response_model=schemas.Order, status_code=201)
-def create_order(order: schemas.OrderCreate, db: Session = Depends(get_db)):
+def create_order(
+    order: schemas.OrderCreate,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
     try:
-        return crud.create_order(db, order)
+        db_order = crud.create_order(db, order)
     except BusinessError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+    # Build the message now (session is open), send it after the response.
+    event = crud.get_event(db, db_order.event_id)
+    message = notifications.build_order_message(db_order, event)
+    background_tasks.add_task(notifications.send_telegram_message, message)
+    return db_order
+
+
+@app.patch("/api/orders/{code}", response_model=schemas.Order)
+def update_order(code: str, updates: schemas.OrderUpdate, db: Session = Depends(get_db)):
+    order = crud.get_order_by_code(db, code)
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    if updates.payment_status is not None:
+        try:
+            crud.set_payment_status(db, order, updates.payment_status)
+        except BusinessError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+    return order
 
 
 @app.get("/api/orders", response_model=List[schemas.Order])

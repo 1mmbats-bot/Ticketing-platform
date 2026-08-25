@@ -629,6 +629,76 @@ h2 {
   background: rgba(229, 72, 77, 0.15);
   color: #ff6b6f;
 }
+.pay-pending {
+  background: rgba(245, 166, 35, 0.15);
+  color: #f5b74e;
+}
+.pay-paid {
+  background: rgba(47, 191, 113, 0.15);
+  color: #4fd68d;
+}
+.pay-refunded {
+  background: rgba(138, 146, 166, 0.15);
+  color: #a3abbd;
+}
+
+/* Checkout — payment method picker */
+.pay-methods {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.pay-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+}
+.pay-option:hover {
+  border-color: var(--muted);
+}
+.pay-active {
+  border-color: var(--primary);
+  background: rgba(124, 92, 255, 0.12);
+}
+.pay-icon {
+  font-size: 18px;
+}
+.pay-instructions {
+  background: var(--surface-2);
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  color: var(--muted);
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+.pay-note {
+  background: rgba(245, 166, 35, 0.1);
+  border: 1px solid rgba(245, 166, 35, 0.4);
+  color: #f5b74e;
+  padding: 12px 14px;
+  border-radius: 10px;
+  margin-top: 16px;
+  text-align: left;
+  font-size: 13px;
+}
+.summary-event {
+  margin-bottom: 14px;
+}
+.summary-event strong {
+  display: block;
+  margin-bottom: 4px;
+}
 
 /* Misc */
 .page-head {

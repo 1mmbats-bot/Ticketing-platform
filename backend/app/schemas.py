@@ -46,7 +46,14 @@ class OrderCreate(BaseModel):
     event_id: int
     customer_name: str
     customer_email: str
+    phone: str = ""
     quantity: int
+    payment_method: str = "mpesa"
+    payment_reference: str = ""
+
+
+class OrderUpdate(BaseModel):
+    payment_status: Optional[str] = None  # pending | paid | refunded
 
 
 class Order(BaseModel):
@@ -56,8 +63,12 @@ class Order(BaseModel):
     event_id: int
     customer_name: str
     customer_email: str
+    phone: str = ""
     quantity: int
     total_cents: int
+    payment_method: str
+    payment_reference: str = ""
+    payment_status: str
     status: str
     created_at: datetime
     event: Optional[Event] = None
