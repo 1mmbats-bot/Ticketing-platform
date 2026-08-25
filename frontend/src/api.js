@@ -13,27 +13,29 @@ async function request(path, options = {}) {
   return data;
 }
 
+function qs(params = {}) {
+  const q = new URLSearchParams();
+  Object.entries(params).forEach(([k, v]) => {
+    if (v !== "" && v !== null && v !== undefined) q.append(k, v);
+  });
+  const s = q.toString();
+  return s ? `?${s}` : "";
+}
+
 export const api = {
-  health: () => request("/health"),
+  stats: () => request("/events/stats"),
 
-  listUsers: () => request("/users"),
-  createUser: (body) => request("/users", { method: "POST", body: JSON.stringify(body) }),
+  listEvents: (params = {}) => request("/events" + qs(params)),
+  getEvent: (id) => request(`/events/${id}`),
+  createEvent: (body) =>
+    request("/events", { method: "POST", body: JSON.stringify(body) }),
+  updateEvent: (id, body) =>
+    request(`/events/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
+  deleteEvent: (id) => request(`/events/${id}`, { method: "DELETE" }),
 
-  stats: () => request("/tickets/stats"),
-
-  listTickets: (params = {}) => {
-    const q = new URLSearchParams();
-    Object.entries(params).forEach(([k, v]) => {
-      if (v !== "" && v !== null && v !== undefined) q.append(k, v);
-    });
-    const qs = q.toString();
-    return request("/tickets" + (qs ? `?${qs}` : ""));
-  },
-  getTicket: (id) => request(`/tickets/${id}`),
-  createTicket: (body) => request("/tickets", { method: "POST", body: JSON.stringify(body) }),
-  updateTicket: (id, body) =>
-    request(`/tickets/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
-  deleteTicket: (id) => request(`/tickets/${id}`, { method: "DELETE" }),
-  addComment: (id, body) =>
-    request(`/tickets/${id}/comments`, { method: "POST", body: JSON.stringify(body) }),
+  createOrder: (body) =>
+    request("/orders", { method: "POST", body: JSON.stringify(body) }),
+  listOrders: (email) => request("/orders" + qs({ email })),
+  getOrder: (code) => request(`/orders/${code}`),
+  cancelOrder: (code) => request(`/orders/${code}/cancel`, { method: "POST" }),
 };

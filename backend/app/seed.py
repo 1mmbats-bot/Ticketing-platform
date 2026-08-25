@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from .database import SessionLocal
 from . import models
 
@@ -5,71 +7,73 @@ from . import models
 def seed_if_empty():
     db = SessionLocal()
     try:
-        if db.query(models.User).count() > 0:
+        if db.query(models.Event).count() > 0:
             return
 
-        users = [
-            models.User(name="Alice Nguyen", email="alice@support.io", role="admin"),
-            models.User(name="Bob Martins", email="bob@support.io", role="agent"),
-            models.User(name="Carla Diaz", email="carla@support.io", role="agent"),
+        now = datetime.utcnow()
+        events = [
+            models.Event(
+                title="Midnight Synth — Live in Concert",
+                description="An electrifying night of synthwave with laser visuals and special guests.",
+                category="music",
+                venue="Neon Arena",
+                city="Austin",
+                starts_at=now + timedelta(days=14, hours=3),
+                price_cents=4500,
+                capacity=500,
+                tickets_sold=120,
+                image_url="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800",
+            ),
+            models.Event(
+                title="City Marathon 2026",
+                description="Run the historic downtown route. Includes race pack and finisher medal.",
+                category="sports",
+                venue="Downtown Start Line",
+                city="Chicago",
+                starts_at=now + timedelta(days=40),
+                price_cents=6000,
+                capacity=2000,
+                tickets_sold=1450,
+                image_url="https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?w=800",
+            ),
+            models.Event(
+                title="Hamlet — A Modern Retelling",
+                description="A bold new staging of Shakespeare's classic tragedy.",
+                category="theater",
+                venue="Grand Playhouse",
+                city="New York",
+                starts_at=now + timedelta(days=7, hours=2),
+                price_cents=7500,
+                capacity=300,
+                tickets_sold=295,
+                image_url="https://images.unsplash.com/photo-1503095396549-807759245b35?w=800",
+            ),
+            models.Event(
+                title="DevWorld 2026 Conference",
+                description="Two days of talks on AI, web, and cloud from industry leaders.",
+                category="conference",
+                venue="Metro Convention Center",
+                city="San Francisco",
+                starts_at=now + timedelta(days=60),
+                price_cents=29900,
+                capacity=1200,
+                tickets_sold=800,
+                image_url="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800",
+            ),
+            models.Event(
+                title="Laugh Out Loud — Comedy Night",
+                description="Stand-up showcase featuring five rising comedians.",
+                category="comedy",
+                venue="The Basement Club",
+                city="Austin",
+                starts_at=now + timedelta(days=3, hours=1),
+                price_cents=2500,
+                capacity=150,
+                tickets_sold=150,  # sold out
+                image_url="https://images.unsplash.com/photo-1585699324551-f6c309eedeca?w=800",
+            ),
         ]
-        db.add_all(users)
-        db.commit()
-        for u in users:
-            db.refresh(u)
-
-        tickets = [
-            models.Ticket(
-                title="Cannot log in to dashboard",
-                description="User reports a 403 error after entering correct credentials.",
-                status="open",
-                priority="high",
-                category="authentication",
-                requester_name="Dan Cooper",
-                requester_email="dan@acme.com",
-                assignee_id=users[1].id,
-            ),
-            models.Ticket(
-                title="Invoice PDF export is blank",
-                description="Exported invoices contain no line items for large orders.",
-                status="in_progress",
-                priority="urgent",
-                category="billing",
-                requester_name="Ella Fox",
-                requester_email="ella@globex.com",
-                assignee_id=users[0].id,
-            ),
-            models.Ticket(
-                title="Feature request: dark mode",
-                description="Several customers asking for a dark theme option.",
-                status="open",
-                priority="low",
-                category="feature",
-                requester_name="Frank Reed",
-                requester_email="frank@initech.com",
-            ),
-            models.Ticket(
-                title="API rate limit too aggressive",
-                description="Getting 429 responses under normal load.",
-                status="resolved",
-                priority="medium",
-                category="api",
-                requester_name="Grace Hill",
-                requester_email="grace@umbrella.com",
-                assignee_id=users[2].id,
-            ),
-        ]
-        db.add_all(tickets)
-        db.commit()
-        for t in tickets:
-            db.refresh(t)
-
-        db.add_all([
-            models.Comment(ticket_id=tickets[0].id, author="Bob Martins",
-                           body="Looking into the auth logs now."),
-            models.Comment(ticket_id=tickets[1].id, author="Alice Nguyen",
-                           body="Reproduced. Seems related to pagination in the PDF renderer."),
-        ])
+        db.add_all(events)
         db.commit()
     finally:
         db.close()

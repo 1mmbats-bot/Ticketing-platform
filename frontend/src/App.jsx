@@ -1,35 +1,39 @@
 import { Link, NavLink, Route, Routes } from "react-router-dom";
-import Dashboard from "./pages/Dashboard.jsx";
-import TicketList from "./pages/TicketList.jsx";
-import TicketDetail from "./pages/TicketDetail.jsx";
-import NewTicket from "./pages/NewTicket.jsx";
+import Events from "./pages/Events.jsx";
+import EventDetail from "./pages/EventDetail.jsx";
+import Confirmation from "./pages/Confirmation.jsx";
+import MyOrders from "./pages/MyOrders.jsx";
+import Admin from "./pages/Admin.jsx";
 
 export default function App() {
   return (
     <div className="app">
       <header className="topbar">
         <Link to="/" className="brand">
-          <span className="brand-dot" /> HelpDesk
+          <span className="brand-dot" /> TicketHub
         </Link>
         <nav className="nav">
           <NavLink to="/" end>
-            Dashboard
+            Browse
           </NavLink>
-          <NavLink to="/tickets">Tickets</NavLink>
-          <Link to="/tickets/new" className="btn btn-primary">
-            + New Ticket
-          </Link>
+          <NavLink to="/orders">My Orders</NavLink>
+          <NavLink to="/admin">Admin</NavLink>
         </nav>
       </header>
 
       <main className="content">
         <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/tickets" element={<TicketList />} />
-          <Route path="/tickets/new" element={<NewTicket />} />
-          <Route path="/tickets/:id" element={<TicketDetail />} />
+          <Route path="/" element={<Events />} />
+          <Route path="/events/:id" element={<EventDetail />} />
+          <Route path="/confirmation/:code" element={<Confirmation />} />
+          <Route path="/orders" element={<MyOrders />} />
+          <Route path="/admin" element={<Admin />} />
         </Routes>
       </main>
+
+      <footer className="footer">
+        TicketHub — a demo event ticketing platform · React + FastAPI
+      </footer>
     </div>
   );
 }

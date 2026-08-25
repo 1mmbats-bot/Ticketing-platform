@@ -4,13 +4,14 @@ from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
-from . import crud, models, schemas
+from . import crud, schemas
+from .crud import BusinessError
 from .database import Base, engine, get_db
 from .seed import seed_if_empty
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Ticketing Platform API", version="1.0.0")
+app = FastAPI(title="Event Ticketing API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -31,80 +32,89 @@ def health():
     return {"status": "ok"}
 
 
-# ---------- Users ----------
-@app.get("/api/users", response_model=List[schemas.User])
-def list_users(db: Session = Depends(get_db)):
-    return crud.get_users(db)
-
-
-@app.post("/api/users", response_model=schemas.User, status_code=201)
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    return crud.create_user(db, user)
-
-
-# ---------- Tickets ----------
-@app.get("/api/tickets", response_model=List[schemas.TicketSummary])
-def list_tickets(
-    status: Optional[str] = None,
-    priority: Optional[str] = None,
-    assignee_id: Optional[int] = None,
+# ---------- Events ----------
+@app.get("/api/events", response_model=List[schemas.Event])
+def list_events(
     search: Optional[str] = Query(None),
+    category: Optional[str] = None,
+    city: Optional[str] = None,
+    upcoming_only: bool = False,
     db: Session = Depends(get_db),
 ):
-    return crud.get_tickets(db, status, priority, assignee_id, search)
+    return crud.get_events(db, search, category, city, upcoming_only)
 
 
-@app.get("/api/tickets/stats", response_model=schemas.Stats)
-def ticket_stats(db: Session = Depends(get_db)):
+@app.get("/api/events/stats", response_model=schemas.Stats)
+def event_stats(db: Session = Depends(get_db)):
     return crud.get_stats(db)
 
 
-@app.get("/api/tickets/{ticket_id}", response_model=schemas.Ticket)
-def get_ticket(ticket_id: int, db: Session = Depends(get_db)):
-    ticket = crud.get_ticket(db, ticket_id)
-    if not ticket:
-        raise HTTPException(status_code=404, detail="Ticket not found")
-    return ticket
+@app.get("/api/events/{event_id}", response_model=schemas.Event)
+def get_event(event_id: int, db: Session = Depends(get_db)):
+    event = crud.get_event(db, event_id)
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    return event
 
 
-@app.post("/api/tickets", response_model=schemas.Ticket, status_code=201)
-def create_ticket(ticket: schemas.TicketCreate, db: Session = Depends(get_db)):
-    if ticket.priority not in crud.VALID_PRIORITY:
-        raise HTTPException(status_code=400, detail="Invalid priority")
-    if ticket.assignee_id is not None and not crud.get_user(db, ticket.assignee_id):
-        raise HTTPException(status_code=400, detail="Assignee not found")
-    return crud.create_ticket(db, ticket)
+@app.post("/api/events", response_model=schemas.Event, status_code=201)
+def create_event(event: schemas.EventCreate, db: Session = Depends(get_db)):
+    if event.price_cents < 0:
+        raise HTTPException(status_code=400, detail="Price cannot be negative")
+    if event.capacity < 0:
+        raise HTTPException(status_code=400, detail="Capacity cannot be negative")
+    return crud.create_event(db, event)
 
 
-@app.patch("/api/tickets/{ticket_id}", response_model=schemas.Ticket)
-def update_ticket(
-    ticket_id: int, updates: schemas.TicketUpdate, db: Session = Depends(get_db)
+@app.patch("/api/events/{event_id}", response_model=schemas.Event)
+def update_event(
+    event_id: int, updates: schemas.EventUpdate, db: Session = Depends(get_db)
 ):
-    ticket = crud.get_ticket(db, ticket_id)
-    if not ticket:
-        raise HTTPException(status_code=404, detail="Ticket not found")
-    if updates.status is not None and updates.status not in crud.VALID_STATUS:
-        raise HTTPException(status_code=400, detail="Invalid status")
-    if updates.priority is not None and updates.priority not in crud.VALID_PRIORITY:
-        raise HTTPException(status_code=400, detail="Invalid priority")
-    if updates.assignee_id is not None and not crud.get_user(db, updates.assignee_id):
-        raise HTTPException(status_code=400, detail="Assignee not found")
-    return crud.update_ticket(db, ticket, updates)
+    event = crud.get_event(db, event_id)
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    try:
+        return crud.update_event(db, event, updates)
+    except BusinessError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.delete("/api/tickets/{ticket_id}", status_code=204)
-def delete_ticket(ticket_id: int, db: Session = Depends(get_db)):
-    ticket = crud.get_ticket(db, ticket_id)
-    if not ticket:
-        raise HTTPException(status_code=404, detail="Ticket not found")
-    crud.delete_ticket(db, ticket)
+@app.delete("/api/events/{event_id}", status_code=204)
+def delete_event(event_id: int, db: Session = Depends(get_db)):
+    event = crud.get_event(db, event_id)
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    crud.delete_event(db, event)
 
 
-@app.post("/api/tickets/{ticket_id}/comments", response_model=schemas.Comment, status_code=201)
-def add_comment(
-    ticket_id: int, comment: schemas.CommentCreate, db: Session = Depends(get_db)
-):
-    ticket = crud.get_ticket(db, ticket_id)
-    if not ticket:
-        raise HTTPException(status_code=404, detail="Ticket not found")
-    return crud.add_comment(db, ticket_id, comment)
+# ---------- Orders ----------
+@app.post("/api/orders", response_model=schemas.Order, status_code=201)
+def create_order(order: schemas.OrderCreate, db: Session = Depends(get_db)):
+    try:
+        return crud.create_order(db, order)
+    except BusinessError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/api/orders", response_model=List[schemas.Order])
+def list_orders(email: Optional[str] = None, db: Session = Depends(get_db)):
+    return crud.get_orders(db, email)
+
+
+@app.get("/api/orders/{code}", response_model=schemas.Order)
+def get_order(code: str, db: Session = Depends(get_db)):
+    order = crud.get_order_by_code(db, code)
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    return order
+
+
+@app.post("/api/orders/{code}/cancel", response_model=schemas.Order)
+def cancel_order(code: str, db: Session = Depends(get_db)):
+    order = crud.get_order_by_code(db, code)
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    try:
+        return crud.cancel_order(db, order)
+    except BusinessError as e:
+        raise HTTPException(status_code=400, detail=str(e))
