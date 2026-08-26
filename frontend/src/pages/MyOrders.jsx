@@ -37,9 +37,9 @@ export default function MyOrders() {
   return (
     <div className="narrow">
       <div className="page-head">
-        <h1>My Orders</h1>
+        <h1>My Tickets</h1>
       </div>
-      <p className="muted">
+      <p className="muted" style={{ marginBottom: 20 }}>
         Enter the email you used at checkout to find your bookings.
       </p>
 
@@ -55,10 +55,14 @@ export default function MyOrders() {
       </form>
 
       {error && <div className="error-box">Error: {error}</div>}
-      {loading && <div className="muted">Searching…</div>}
+      {loading && <div className="muted" style={{ padding: 20, textAlign: "center" }}>Searching...</div>}
 
       {orders && orders.length === 0 && (
-        <div className="muted empty">No orders found for that email.</div>
+        <div className="empty">
+          <div style={{ fontSize: 48, marginBottom: 12 }}>&#128269;</div>
+          <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>No orders found</div>
+          <div>No orders found for that email address.</div>
+        </div>
       )}
 
       {orders && orders.length > 0 && (
@@ -75,14 +79,12 @@ export default function MyOrders() {
                   <span className="muted">Event removed</span>
                 )}
                 {o.event && (
-                  <div className="muted small">
-                    {formatDate(o.event.starts_at)}
-                  </div>
+                  <div className="muted small">{formatDate(o.event.starts_at)}</div>
                 )}
               </div>
               <div className="order-side">
-                <div>
-                  {o.quantity} × · <strong>{formatMoney(o.total_cents)}</strong>
+                <div style={{ fontWeight: 700 }}>
+                  {o.quantity} &times; {formatMoney(o.total_cents)}
                 </div>
                 <div className="muted small">{paymentLabel(o.payment_method)}</div>
                 <span className={`badge pay-${o.payment_status}`}>
@@ -90,7 +92,7 @@ export default function MyOrders() {
                 </span>
                 <span className={`badge status-${o.status}`}>{o.status}</span>
                 {o.status === "confirmed" && (
-                  <button className="btn btn-danger small" onClick={() => cancel(o.code)}>
+                  <button className="btn btn-danger btn-sm" onClick={() => cancel(o.code)}>
                     Cancel
                   </button>
                 )}

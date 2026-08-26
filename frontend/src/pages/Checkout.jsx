@@ -32,7 +32,7 @@ export default function Checkout() {
   );
 
   if (error) return <div className="error-box">Error: {error}</div>;
-  if (!event) return <div className="muted">Loading…</div>;
+  if (!event) return <div className="muted" style={{ padding: 40, textAlign: "center" }}>Loading...</div>;
 
   const soldOut = event.tickets_available === 0;
   const maxQty = Math.min(10, event.tickets_available);
@@ -67,22 +67,20 @@ export default function Checkout() {
     return (
       <div className="narrow">
         <div className="error-box">Sorry, this event is sold out.</div>
-        <Link to="/" className="btn">
-          ← Back to events
-        </Link>
+        <Link to="/" className="btn btn-outline">&larr; Back to events</Link>
       </div>
     );
 
   return (
     <div>
       <Link to={`/events/${event.id}`} className="back-link">
-        ← Back to event
+        &larr; Back to event
       </Link>
       <div className="page-head">
         <h1>Checkout</h1>
       </div>
 
-      <div className="detail-grid">
+      <div className="checkout-grid">
         <form onSubmit={submit} className="form">
           <div className="panel">
             <h2>Your details</h2>
@@ -113,7 +111,7 @@ export default function Checkout() {
                 <input
                   className="input"
                   required
-                  placeholder="+254…"
+                  placeholder="+254..."
                   value={form.phone}
                   onChange={(e) => set("phone", e.target.value)}
                 />
@@ -126,9 +124,7 @@ export default function Checkout() {
                   onChange={(e) => set("quantity", Number(e.target.value))}
                 >
                   {Array.from({ length: maxQty }, (_, i) => i + 1).map((n) => (
-                    <option key={n} value={n}>
-                      {n}
-                    </option>
+                    <option key={n} value={n}>{n}</option>
                   ))}
                 </select>
               </label>
@@ -142,9 +138,7 @@ export default function Checkout() {
                 <button
                   type="button"
                   key={m.value}
-                  className={`pay-option ${
-                    form.payment_method === m.value ? "pay-active" : ""
-                  }`}
+                  className={`pay-option ${form.payment_method === m.value ? "pay-active" : ""}`}
                   onClick={() => set("payment_method", m.value)}
                 >
                   <span className="pay-icon">{m.icon}</span>
@@ -172,26 +166,20 @@ export default function Checkout() {
           {error && <div className="error-box">{error}</div>}
 
           <button className="btn btn-primary btn-block" disabled={submitting}>
-            {submitting
-              ? "Placing order…"
-              : `Place order · ${formatMoney(total)}`}
+            {submitting ? "Placing order..." : `Place order · ${formatMoney(total)}`}
           </button>
         </form>
 
-        <aside className="panel side">
+        <aside className="panel">
           <h2>Order summary</h2>
           <div className="summary-event">
             <strong>{event.title}</strong>
             <div className="muted small">{formatDate(event.starts_at)}</div>
-            <div className="muted small">
-              {event.venue}, {event.city}
-            </div>
+            <div className="muted small">{event.venue}, {event.city}</div>
           </div>
           <div className="receipt">
             <div className="receipt-row">
-              <span>
-                {formatMoney(event.price_cents)} × {form.quantity}
-              </span>
+              <span>{formatMoney(event.price_cents)} &times; {form.quantity}</span>
               <span>{formatMoney(total)}</span>
             </div>
             <div className="receipt-row total">

@@ -13,16 +13,16 @@ export default function Confirmation() {
   }, [code]);
 
   if (error) return <div className="error-box">Error: {error}</div>;
-  if (!order) return <div className="muted">Loading…</div>;
+  if (!order) return <div className="muted" style={{ padding: 40, textAlign: "center" }}>Loading...</div>;
 
   return (
     <div className="narrow">
       <div className="confirm-card panel">
-        <div className="confirm-check">✓</div>
+        <div className="confirm-check">&#10003;</div>
         <h1>You're going!</h1>
         <p className="muted">
           Your booking is confirmed. A confirmation was sent to{" "}
-          {order.customer_email}.
+          <strong>{order.customer_email}</strong>.
         </p>
 
         <div className="booking-code">
@@ -34,9 +34,13 @@ export default function Confirmation() {
           <div className="confirm-event">
             <h2>{order.event.title}</h2>
             <div className="detail-meta">
-              <div>📅 {formatDate(order.event.starts_at)}</div>
-              <div>
-                📍 {order.event.venue}, {order.event.city}
+              <div className="detail-meta-item">
+                <span className="detail-meta-icon">&#128197;</span>
+                <span>{formatDate(order.event.starts_at)}</span>
+              </div>
+              <div className="detail-meta-item">
+                <span className="detail-meta-icon">&#128205;</span>
+                <span>{order.event.venue}, {order.event.city}</span>
               </div>
             </div>
           </div>
@@ -65,15 +69,15 @@ export default function Confirmation() {
 
         {order.payment_status === "pending" && (
           <div className="pay-note">
-            ⏳ Your tickets are reserved. Complete payment via{" "}
+            Your tickets are reserved. Complete payment via{" "}
             <strong>{paymentLabel(order.payment_method)}</strong> — the organizer
             will confirm it shortly.
           </div>
         )}
 
         <div className="form-actions">
-          <Link to="/orders" className="btn">
-            View my orders
+          <Link to="/orders" className="btn btn-outline">
+            View my tickets
           </Link>
           <Link to="/" className="btn btn-primary">
             Browse more events

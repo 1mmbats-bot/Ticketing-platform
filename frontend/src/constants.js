@@ -7,8 +7,15 @@ export const CATEGORIES = [
   "general",
 ];
 
-// Payment platforms shown at checkout. `refLabel` is the label for the
-// reference field; `instructions` is shown once the method is picked.
+export const CATEGORY_META = {
+  music: { label: "Concerts", icon: "🎵" },
+  sports: { label: "Sports", icon: "⚽" },
+  theater: { label: "Arts & Theater", icon: "🎭" },
+  conference: { label: "Conferences", icon: "🎤" },
+  comedy: { label: "Comedy", icon: "😂" },
+  general: { label: "More", icon: "✨" },
+};
+
 export const PAYMENT_METHODS = [
   {
     value: "mpesa",
@@ -91,7 +98,21 @@ export function formatDateShort(iso) {
   });
 }
 
-// datetime-local input needs "YYYY-MM-DDTHH:mm"
+export function getMonthDay(iso) {
+  if (!iso) return { month: "---", day: "--" };
+  const d = new Date(iso);
+  return {
+    month: d.toLocaleString(undefined, { month: "short" }).toUpperCase(),
+    day: d.getDate(),
+  };
+}
+
+export function getTime(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return d.toLocaleString(undefined, { hour: "2-digit", minute: "2-digit" });
+}
+
 export function toDatetimeLocal(d) {
   const pad = (n) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(

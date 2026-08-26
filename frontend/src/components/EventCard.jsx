@@ -1,9 +1,11 @@
 import { Link } from "react-router-dom";
-import { formatDateShort, formatMoney } from "../constants";
+import { formatMoney, getMonthDay, getTime } from "../constants";
 
 export default function EventCard({ event }) {
   const soldOut = event.tickets_available === 0;
   const almostGone = !soldOut && event.tickets_available <= event.capacity * 0.1;
+  const { month, day } = getMonthDay(event.starts_at);
+  const time = getTime(event.starts_at);
 
   return (
     <Link to={`/events/${event.id}`} className="event-card">
@@ -15,20 +17,28 @@ export default function EventCard({ event }) {
             : undefined
         }
       >
-        <span className={`cat-chip cat-${event.category}`}>{event.category}</span>
-        {soldOut && <span className="soldout-chip">Sold Out</span>}
-        {almostGone && <span className="almost-chip">Almost Gone</span>}
+        <div className="event-date-badge">
+          <span className="month">{month}</span>
+          <span className="day">{day}</span>
+        </div>
+        {soldOut && <span className="event-badge-right badge-soldout">Sold Out</span>}
+        {almostGone && <span className="event-badge-right badge-almost">Almost Gone</span>}
       </div>
       <div className="event-body">
-        <div className="event-date">{formatDateShort(event.starts_at)}</div>
         <h3 className="event-title">{event.title}</h3>
-        <div className="event-meta">
-          {event.venue} · {event.city}
+        <div className="event-venue">
+          {event.venue} &middot; {event.city}
         </div>
+        {time && <div className="event-time">{time}</div>}
         <div className="event-foot">
-          <span className="event-price">{formatMoney(event.price_cents)}</span>
-          <span className="event-left">
-            {soldOut ? "—" : `${event.tickets_available} left`}
+          <div>
+            <div className="event-price">{formatMoney(event.price_cents)}</div>
+            <div className="event-price-label">
+              {soldOut ? "Unavailable" : `${event.tickets_available} tickets left`}
+            </div>
+          </div>
+          <span className="event-action">
+            {soldOut ? "View" : "Get Tickets"}
           </span>
         </div>
       </div>

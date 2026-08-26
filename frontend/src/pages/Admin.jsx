@@ -105,15 +105,15 @@ export default function Admin() {
             <div className="stat-value">{stats.total_events}</div>
             <div className="stat-label">Events</div>
           </div>
-          <div className="stat-card status-open">
+          <div className="stat-card">
             <div className="stat-value">{stats.upcoming_events}</div>
             <div className="stat-label">Upcoming</div>
           </div>
-          <div className="stat-card status-resolved">
+          <div className="stat-card">
             <div className="stat-value">{stats.tickets_sold}</div>
             <div className="stat-label">Tickets Sold</div>
           </div>
-          <div className="stat-card status-in_progress">
+          <div className="stat-card">
             <div className="stat-value">{formatMoney(stats.revenue_cents)}</div>
             <div className="stat-label">Revenue</div>
           </div>
@@ -133,7 +133,7 @@ export default function Admin() {
               return (
                 <div key={e.title} className="bar-row">
                   <div className="bar-label" title={e.title}>
-                    {e.title.length > 22 ? e.title.slice(0, 22) + "…" : e.title}
+                    {e.title.length > 24 ? e.title.slice(0, 24) + "..." : e.title}
                   </div>
                   <div className="bar-track">
                     <div
@@ -196,10 +196,10 @@ export default function Admin() {
           </div>
           <label className="field">
             <span>Image URL</span>
-            <input className="input" placeholder="https://…" value={form.image_url} onChange={(e) => set("image_url", e.target.value)} />
+            <input className="input" placeholder="https://..." value={form.image_url} onChange={(e) => set("image_url", e.target.value)} />
           </label>
           <button className="btn btn-primary" disabled={saving}>
-            {saving ? "Creating…" : "Create event"}
+            {saving ? "Creating..." : "Create event"}
           </button>
         </form>
 
@@ -211,14 +211,14 @@ export default function Admin() {
                 <div>
                   <div className="admin-title">{e.title}</div>
                   <div className="muted small">
-                    {formatDateShort(e.starts_at)} · {e.city} · {formatMoney(e.price_cents)}
+                    {formatDateShort(e.starts_at)} &middot; {e.city} &middot; {formatMoney(e.price_cents)}
                   </div>
                 </div>
                 <div className="admin-item-side">
                   <div className="sold-pill">
                     {e.tickets_sold}/{e.capacity} sold
                   </div>
-                  <button className="btn btn-danger small" onClick={() => remove(e.id)}>
+                  <button className="btn btn-danger btn-sm" onClick={() => remove(e.id)}>
                     Delete
                   </button>
                 </div>
@@ -231,7 +231,7 @@ export default function Admin() {
       <div className="panel">
         <h2>Recent orders ({orders.length})</h2>
         {orders.length === 0 ? (
-          <div className="muted">No orders yet.</div>
+          <div className="muted" style={{ padding: 20 }}>No orders yet.</div>
         ) : (
           <table className="table">
             <thead>
@@ -266,14 +266,14 @@ export default function Admin() {
                   <td>
                     {o.payment_status !== "paid" ? (
                       <button
-                        className="btn small"
+                        className="btn btn-sm"
                         onClick={() => setPaid(o.code, "paid")}
                       >
                         Mark paid
                       </button>
                     ) : (
                       <button
-                        className="btn small"
+                        className="btn btn-secondary btn-sm"
                         onClick={() => setPaid(o.code, "pending")}
                       >
                         Undo
